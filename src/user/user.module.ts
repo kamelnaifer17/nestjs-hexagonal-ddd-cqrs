@@ -1,21 +1,38 @@
 import { Module } from '@nestjs/common';
-import { CreateUserUseCase } from './application/use-cases/create-user.use-case';
+import { CqrsModule } from '@nestjs/cqrs';
+import { CreateUserHandler } from './application/commands/create-user.command-handler';
+import { UpdateUserHandler } from './application/commands/updat-user.command-handler';
+import { DeleteUserHandler } from './application/commands/delete-user.command-handler';
+import { UserCreatedHandler, UserDeletedHandler, UserUpdatedHandler } from './application/events/user-created.event-handler';
+import { GetUserHandler } from './application/queries/get-user.query-handler';
+import { ListUsersHandler } from './application/queries/list-users.query-handler';
+import { UserController } from './presentation/user.controller';
 import { USER_REPOSITORY } from './application/ports/user.repository.port';
 import { InMemoryUserRepository } from './infrastructure/adapaters/in-memory-user.repository';
-import { UserController } from './presentation/user.controller';
-import { GetUserUseCase } from './application/use-cases/get-user.use-case';
-import { ListUsersUseCase } from './application/use-cases/list-users.use-case';
-import { DeleteUserUseCase } from './application/use-cases/delete-user.use-case';
-import { UpdateUserUseCase } from './application/use-cases/update-user.use-case';
+
+const CommandHandlers = [
+  CreateUserHandler,    
+  UpdateUserHandler,
+  DeleteUserHandler];
+
+const QueryHandlers = [
+  GetUserHandler,
+  ListUsersHandler,
+];
+
+const EventHandlers = [
+  UserCreatedHandler,
+  UserUpdatedHandler,
+  UserDeletedHandler,
+];
 
 @Module({
+  imports: [CqrsModule],  
   controllers: [UserController],
   providers: [
-    CreateUserUseCase,
-    GetUserUseCase,
-    DeleteUserUseCase,
-    UpdateUserUseCase,
-    ListUsersUseCase,
+    ...CommandHandlers,   
+    ...QueryHandlers,
+    ...EventHandlers,
     {
       provide: USER_REPOSITORY,
       useClass: InMemoryUserRepository,
